@@ -1,0 +1,71 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('.static', filename='dashboard.css')}}">
+{% endblock %}
+
+{% block content %}
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Fantasy Basketball Maker</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+          </ul>
+          <form class="navbar-form navbar-right">
+            <input type="text" class="form-control" placeholder="Search...">
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <h1>&nbsp;</h1> <!-- Space for the text-->  
+          <h1 class="page-header">Welcome, {{ name }}!</h1>
+
+          <div class="row placeholders">
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <img src="https://cdn.shopify.com/s/files/1/0705/0743/products/huey-freeman_1869x.jpg?v=1586494466" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
+              <h4>DevOps Trainee</h4>
+              <span class="text-muted">Part-time basketball fanatic</span>
+            </div>
+          </div>
+
+          <h2 class="sub-header">Create your own basketball squad!</h2>
+          <div class="container">
+            <form class="form-signin" method="POST" action="/addteam">
+              <h2 class="form-signin-heading">Please sign in</h2>
+              {{ form.hidden_tag() }}
+              {{ wtf.form_field(form.username) }}
+              {{ wtf.form_field(form.password) }}
+              {{ wtf.form_field(form.remember) }}
+              <button class="btn btn-lg btn-primary btn-block" type="submit">Add team</button>
+            </form>
+          </div>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+{% endblock %}
