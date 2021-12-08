@@ -36,10 +36,9 @@ class RegisterForm(FlaskForm):
     username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=80)])
 
-class BasicForm(FlaskForm):
-    first_name = StringField('First Name')
-    last_name = StringField('Last Name')
-    submit = SubmitField('Add Name')
+class TeamForm(FlaskForm):
+    team_name = StringField('Team Name',validators=[InputRequired()])
+    submit = SubmitField('Add Team')
 
 
 @app.route('/')
@@ -65,6 +64,20 @@ def login():
 def returntohome():
     return redirect(url_for('index'))
 
+
+
+@app.route('/addteams', methods=['GET', 'POST'])
+def addteam():
+    message = ""
+    form = TeamForm()
+
+    if request.method == 'POST':
+        team_name = form.team_name
+        message = f'Thank you, {team_name} has been added'
+    return render_template('addteams.html', form=form, message=message)
+
+
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = RegisterForm()
@@ -76,31 +89,14 @@ def signup():
         db.session.commit()
 
         return '<h1>New user has been created!</h1>'
-        #return '<h1>' + form.username.data + ' ' + form.email.data + ' ' + form.password.data + '</h1>'
 
     return render_template('signup.html', form=form)
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
     return render_template('dashboard.html', name=current_user.username)
 
-@app.route('/addteam')
-@login_required
-def addteam():
-    message = ""
-    form = BasicForm()
-
-    if request.method == 'POST':
-        first_name = form.first_name.data
-        last_name = form.last_name.data
-
-        if len(first_name) == 0 or len(last_name) == 0:
-            message = "Please supply both first and last name"
-        else:
-            message = f'Thank you, {first_name} {last_name}'
-
-    return render_template('dashboard.html', form=form, message=message)
 
 @app.route('/logout')
 @login_required
@@ -109,4 +105,4 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')

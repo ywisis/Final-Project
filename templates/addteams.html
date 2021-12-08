@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <title>Add Team</title>
+    </head>
+    <body>
+        <div class='form'>
+            <form method='POST' action=''>
+                {{ form.hidden_tag() }}
+                {{ form.team_name.label }} {{ form.team_name }}
+                <br>
+                {{ form.submit }}
+                <br>
+            {{ message }}
+            </form>
+        </div>
+    </body>
+</html>
