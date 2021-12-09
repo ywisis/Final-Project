@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
+from sqlalchemy.orm import backref, relationship, session
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import InputRequired, Email, Length
 from flask_sqlalchemy  import SQLAlchemy
@@ -17,10 +18,28 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'User'
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(15), unique=True)
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
+
+
+class Players(db.Model):
+    __tablename__ = 'Players'
+
+    id = db.Column(db.Integer, primary_key =True)
+    player_name = db.Column(db.String(30), unique=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('Team.id'))
+
+class Team(db.Model):
+    __tablename__ = 'Team'
+
+    id = db.Column(db.Integer, primary_key=True)
+    team_name = db.Column(db.String(30), unique=True)
+    players = db.relationship('Players', backref='team', lazy=True)
+
 db.create_all()
 @login_manager.user_loader
 def load_user(user_id):
@@ -66,15 +85,30 @@ def returntohome():
 
 
 
-@app.route('/addteams', methods=['GET', 'POST'])
+@app.route('/add/teams', methods=['GET', 'POST'])
 def addteam():
     message = ""
     form = TeamForm()
 
     if request.method == 'POST':
-        team_name = form.team_name
-        message = f'Thank you, {team_name} has been added'
+        if form.validate_on_submit():
+            team =  Team.query.filter_by(team_name=form.team_name.data).first()
+            if team:
+                message = f'Error, {form.team_name._value()} has already been added'
+            else:
+                team_name = Team(team_name=form.team_name.data)
+                db.session.add(team_name)
+                db.session.commit()
+                message = f'Thank you, {form.team_name._value()} has been added'
     return render_template('addteams.html', form=form, message=message)
+
+@app.route('/view/teams')
+def read():
+    all_teams = Team.query.filter_by(Team.team_name).all()
+    teams_string = ""
+    for team in str(all_teams):
+        teams_string += "<br>"+ team
+    return teams_string
 
 
 
