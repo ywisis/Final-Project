@@ -143,8 +143,8 @@ def addplayers():
 @app.route('/view/<teams>/players')
 def displayplayers(teams):
     player_string = ""
-    #all_players = Players.query.filter_by(id=Players.team_id).all()
-    all_players = db.session.query(Players.player_name).filter(Players.team_id == 1).all()
+    team_id = Team.query.filter(Team.team_name==str(teams)).first().id
+    all_players = db.session.query(Players.player_name).filter(Players.team_id == team_id).all()
     for player in all_players:
         player_string +=  player.player_name + "<br>"
     return player_string
