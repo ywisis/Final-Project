@@ -1,14 +1,16 @@
 <html>
     <head>
-        <title>Add Team</title>
+        <title>Add Players</title>
     </head>
     <body>
         <div class='form'>
             <form method='POST' action=''>
                 {{ form.hidden_tag() }}
-                {{ form.team_name.label }} {{ form.team_name }}
+                {{ form.player_name.label }} {{ form.player_name }}
+                {{ form.team_name.label}} {{ form.team_name}}
+                
                 <br>
-                {{ form.submit }}
+                {{ form.submit() }}
                 <button type="submit" class="btn btn-default"><a href="{{url_for('viewteams')}}" >View your teams</a></button>
                 <br>
             {{ message }}

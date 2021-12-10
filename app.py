@@ -1,12 +1,15 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
+from sqlalchemy import select
 from sqlalchemy.orm import backref, relationship, session
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from sqlalchemy.sql.expression import false
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
 from wtforms.validators import InputRequired, Email, Length
 from flask_sqlalchemy  import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from wtforms.widgets.core import Select
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisissupposedtobesecret!'
@@ -31,15 +34,15 @@ class Players(db.Model):
 
     id = db.Column(db.Integer, primary_key =True)
     player_name = db.Column(db.String(30), unique=True)
-    team_id = db.Column(db.Integer, db.ForeignKey('Team.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('Team.id'), nullable=false)
 
 class Team(db.Model):
     __tablename__ = 'Team'
 
     id = db.Column(db.Integer, primary_key=True)
     team_name = db.Column(db.String(30), unique=True)
-    players = db.relationship('Players', backref='team', lazy=True)
-
+    #players = db.relationship('Players', backref='team', lazy=True)
+#db.drop_all()
 db.create_all()
 @login_manager.user_loader
 def load_user(user_id):
@@ -58,6 +61,15 @@ class RegisterForm(FlaskForm):
 class TeamForm(FlaskForm):
     team_name = StringField('Team Name',validators=[InputRequired()])
     submit = SubmitField('Add Team')
+
+class PlayerForm(FlaskForm):
+    player_name = StringField('Player Name',validators=[InputRequired()])
+    team_query = Team.query.all()
+    team = []
+    for t in team_query:
+        team.append(t.team_name)
+    team_name = SelectField('Teams', choices=team)
+    submit = SubmitField('Add Player')
 
 
 @app.route('/')
@@ -102,15 +114,40 @@ def addteam():
                 message = f'Thank you, {form.team_name._value()} has been added'
     return render_template('addteams.html', form=form, message=message)
 
-@app.route('/view/teams')
-def read():
-    all_teams = Team.query.filter_by(Team.team_name).all()
-    teams_string = ""
-    for team in str(all_teams):
-        teams_string += "<br>"+ team
-    return teams_string
+@app.route('/view/teams')   
+def viewteams():
+    all_teams = Team.query.all()
+    team_string = ""
+    for team in all_teams:
+        team_string +=  team.team_name + "<br>"
+    return team_string
 
+@app.route('/add/players', methods=['GET', 'POST'])
+def addplayers():
+    message = ""
+    form = PlayerForm()
 
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            player =  Players.query.filter_by(player_name=form.player_name.data).first()
+            if player:
+                message = f'Error, {form.player_name._value()} has already been added'
+            else:
+                team_id = Team.query.filter_by(team_name=form.team_name.data).first().id
+                player_name = Players(player_name=form.player_name.data, team_id=team_id)
+                db.session.add(player_name)
+                db.session.commit()
+                message = f'Thank you, {form.player_name._value()} has been added'
+    return render_template('addplayers.html', form=form, message=message)
+
+@app.route('/view/<teams>/players')
+def displayplayers(teams):
+    player_string = ""
+    #all_players = Players.query.filter_by(id=Players.team_id).all()
+    all_players = db.session.query(Players.player_name).filter(Players.team_id == 1).all()
+    for player in all_players:
+        player_string +=  player.player_name + "<br>"
+    return player_string
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
